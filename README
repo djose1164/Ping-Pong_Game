@@ -9,4 +9,10 @@
     
     I almost finish the base of this Ping-Pong game; if you have some advice to me, don't hesitate in
     let me know them!
+
+    Ok, the principal error is concerning to the movement of the ball. Whe it's moving it left garbage of 
+    itself but I almost fix it.
+
+    And this' not a bug; but I need to add yet the features of movement to the player and AI.
+
 </p>

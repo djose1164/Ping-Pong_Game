@@ -1,6 +1,10 @@
 # Hello to everyone
 
-## Thanks to looking at on this project
+***I'm Jose S. Daniel, a student of mechatronics; learning C programing and Git yet jajaj xD.***
+
+## Thanks for looking at on this project
+
+*In this proyect; I'm trying to creat a Ping-Pong game the most decent possible*
 
 ### This is one of my most challenging project so far in C
 

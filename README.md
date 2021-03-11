@@ -17,3 +17,5 @@
 
 - [x] Delete the rest of garbage left from the movement.
 - [x] I need to add the features of movement to the player and AI.
+
+***Take note: this version is ONLY funcional on LINUX not WINDOWS yet***

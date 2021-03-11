@@ -1,3 +1,12 @@
+/************************************************************/
+/*           Programacion para mecatronicos                 */
+/*  Nombre: Jose S. Daniel Victoriano Bello                 */
+/*  Matricula: 2020-10646                                   */
+/*  Seccion: Miercoles                                      */
+/*  Practica: Ping Pong Game                                */
+/*  Fecha: 6/3/2021                                         */
+/************************************************************/
+
 /**
  * @file main.c
  * @author Jose S. Daniel (djose1164@gmail.com)
@@ -18,8 +27,10 @@
 
 #define MAX_X 30
 #define MAX_Y 30
+
 #define BALL '*'
 #define BACKGROUND ' '
+#define RACKET (char)178
 #define _BSD_SOURCE
 
 // Global variables.
@@ -385,7 +396,7 @@ int gameloop(struct Player *player, struct Player *AI, char world[][MAX_Y], stru
 
     delete (player, AI, world, ball);
 
-    sleep(1);
+    usleep(45000);
   }
   return EXIT_SUCCESS;
 }
@@ -423,10 +434,8 @@ int fill_world(char world[][MAX_Y])
 {
   for (size_t i = 0; i <= MAX_X; i++)
   {
-
     for (size_t j = 0; j <= MAX_Y; j++)
     {
-
       *(*(world + i) + j) = BACKGROUND;
     }
   }
@@ -473,7 +482,8 @@ int main(int argc, char const *argv[])
 
   struct Player player;
   struct Player AI;
-  struct Ball ball = {MIDDLE(MAX_X), MIDDLE(MAX_Y)};
+  struct Ball ball = {MIDDLE(MAX_X), 
+                      MIDDLE(MAX_Y)};
 
   // Put the ball in the middle of the world.
   world[MIDDLE(MAX_X)][MIDDLE(MAX_Y)] = BALL;

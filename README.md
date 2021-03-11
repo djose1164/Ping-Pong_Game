@@ -16,4 +16,4 @@
 ***Ok, the principal error is concerning to the movement of the ball. When it's moving it left garbage of itself but I almost fix it.***
 
 - [x] Delete the rest of garbage left from the movement.
-- [ ] I need to add the features of movement to the player and AI.
+- [x] I need to add the features of movement to the player and AI.

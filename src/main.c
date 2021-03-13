@@ -18,26 +18,38 @@
  * @copyright Copyright (c) 2021
  * 
  */
+
+// Necessary libraries. DON'T DELETE IT!
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <time.h>
+#ifdef __linux__
 #include <unistdio.h>
-#include <termios.h>
 #include <sys/ioctl.h>
+#include <termios.h>
+#elif _WIN32
+#include <windows.h>
+#include <conio.h>
+#endif // __linux__
 
+// Size for matrix.
 #define MAX_X 30
 #define MAX_Y 30
 
+// Forms to display.
 #define BALL '*'
 #define BACKGROUND ' '
-#define RACKET (char)178
+#define RACKET 'x'
+
+// For sleep function.
 #define _BSD_SOURCE
 
 // Global variables.
 bool first_time = true;
 bool init_movement = true;
 unsigned short move_down = 3;
-short temp;
+short temp = -1;
 
 enum Crash
 {
@@ -46,7 +58,7 @@ enum Crash
   CRASH_PLAYER,
   CRASH_AI,
   CRASH_UPPER,
-  CRASH_BOTTOM,
+  CRASH_BOTTOM
 };
 
 // Get the middle point.
@@ -57,12 +69,14 @@ struct Player
   unsigned short width;
   unsigned short height;
   unsigned short x, y;
+  unsigned short goal_counter;
 };
 struct Ball
 {
   unsigned short x, y;
 };
 
+#ifdef __linux__
 static struct termios old, current;
 
 /* Initialize new terminal i/o settings */
@@ -72,13 +86,11 @@ void initTermios(int echo)
   current = old;              /* make new settings same as old settings */
   current.c_lflag &= ~ICANON; /* disable buffered i/o */
   if (echo)
-  {
     current.c_lflag |= ECHO; /* set echo mode */
-  }
+
   else
-  {
     current.c_lflag &= ~ECHO; /* set no echo mode */
-  }
+
   tcsetattr(0, TCSANOW, &current); /* use these new terminal i/o settings now */
 }
 
@@ -126,6 +138,7 @@ bool kbhit()
 
   return byteswaiting > 0;
 }
+#endif // __linux__
 
 void delete (struct Player *player, struct Player *AI, char world[][MAX_Y], struct Ball *ball)
 {
@@ -159,22 +172,25 @@ void delete (struct Player *player, struct Player *AI, char world[][MAX_Y], stru
 
 void refresh(struct Player *player, struct Player *AI, struct Ball *ball, char world[][MAX_Y])
 {
+  // Move the player to his new position.
   for (size_t i = player->x; i < (player->height + player->x); i++)
   {
     for (size_t j = player->y; j < (player->width + player->y); j++)
     {
-      *(*(world + i) + j) = '*';
+      *(*(world + i) + j) = RACKET;
     }
   }
 
+  // Move the AI to its new position.
   for (size_t i = AI->x; i < (AI->height + AI->x); i++)
   {
     for (size_t j = AI->y; j < (AI->width + AI->y); j++)
     {
-      *(*(world + i) + j) = '*';
+      *(*(world + i) + j) = RACKET;
     }
   }
 
+  // Move the ball to its new position.
   for (size_t i = ball->x; i < (ball->x + 1); i++)
   {
     for (size_t j = ball->y; j < (ball->y + 1); j++)
@@ -207,34 +223,96 @@ int draw(char world[][MAX_Y], struct Player *player, struct Player *AI, struct B
  * @param player The width, height and x, y abxis are inside this struct.
  * @param AI Like player.
  * @param ball The ball.
- * @return int 
  */
-int verification(char world[][MAX_Y], struct Player *player, struct Player *AI, struct Ball *ball)
+void verification(char world[][MAX_Y], struct Player *player, struct Player *AI, struct Ball *ball)
 {
   int crash_detection();
 
   int _temp = crash_detection(world, player, AI, ball);
 
-  if (_temp != -2 && _temp != -1)
+  if (_temp != -2)
     temp = crash_detection(world, player, AI, ball);
 
-  unsigned int goal_counter = 0; // For the counter that will be show.
+  // Verification for counter.
+  switch (temp)
+  {
+  case CRASH_LEFT_LIMIT:
+    AI->goal_counter++;
+    world[0][MIDDLE(MAX_Y) + 1] = '0' + AI->goal_counter;
+    printf("Point to AI");
 
-  /* -*-*-*-*-*-*The logic part*-*-*-*-*-*- */
+    ball->x--;
+    ball->y += 2;
+    return;
+
+  case CRASH_RIGHT_LIMIT:
+    player->goal_counter++;
+    world[0][MIDDLE(MAX_Y) - 1] = '0' + player->goal_counter;
+    printf("Point to player");
+
+    ball->x += 1;
+    ball->y--;
+    return;
+
+  default:
+    break;
+  }
+
+  if (player->goal_counter == 2 || AI->goal_counter == 2)
+  {
+    printf("The goal counter has reached the limit.\n");
+    exit(EXIT_SUCCESS);
+  }
 
   // The init movement.
-  if (_temp == -1 && init_movement)
+  static unsigned short random = 10;
+  srand(time(NULL));
+
+  if (_temp == -2 && (ball->y != player->y && ball->y != AI->y) && init_movement)
   {
-    //ball->x -= 1;
-    ball->y -= 1;
+    if (random == 10)
+      random = rand() % 6;
+
+    switch (random)
+    {
+    case 0:
+      ball->y--;
+      break;
+
+    case 1:
+      ball->y++;
+      break;
+
+    case 2:
+      ball->y += 1;
+      ball->x++;
+      break;
+
+    case 3:
+      ball->y++;
+      ball->x -= 1;
+      break;
+    case 4:
+      ball->y -= 1;
+      ball->x--;
+      break;
+
+    case 5:
+      ball->y--;
+      ball->x += 1;
+      break;
+
+    default:
+      break;
+    }
   }
 
   // The crash was detected in the player's side.
   if (temp == CRASH_UPPER)
   {
     // From upper litmit; move to AI's side.
-    ball->x += 1;
-    ball->y += 1;
+    ball->x++;
+    ball->y++;
   }
   /*
     else if ((temp == CRASH_UPPER) && (ball->y > MIDDLE(MAX_Y)))
@@ -258,35 +336,38 @@ int verification(char world[][MAX_Y], struct Player *player, struct Player *AI, 
       ball->y -= 1;
     }
   */
-  if (goal_counter == 10)
-  {
-    printf("The goal counter has reached the limit.\n");
-    exit(EXIT_SUCCESS);
-  }
 
-  if (temp == CRASH_PLAYER)
+  if (temp == CRASH_PLAYER /*&& ball->x <= MIDDLE(MAX_X)*/) // Move to top left side.
   {
     ball->x--;
     ball->y++;
   }
-
-  if (temp == CRASH_AI)
+  /*
+    else if (temp == CRASH_PLAYER && ball->x > MIDDLE(MAX_X)) // Move to bottom left side.
+    {
+      ball->x++;
+      ball->y++;
+    }
+  */
+  if (temp == CRASH_AI /*&& ball->x <= MIDDLE(MAX_X) && change*/) // Move to bottom right side.
   {
     ball->x++;
     ball->y--;
   }
   /*
-    else if (temp == CRASH_AI && ball->x > MIDDLE(AI->height))
+    else if (temp == CRASH_AI && ball->x > MIDDLE(MAX_X))
     {
       ball->x--;
-      ball->y++;
+      ball->y--;
+      change = false;
     }
   */
+
   /* AI movement. */
   if (move_down == 3)
     AI->x--;
 
-  if (AI->x == 0)
+  if (AI->x == 1)
     move_down = 1;
 
   else if (AI->x == (MAX_X - AI->height))
@@ -296,8 +377,6 @@ int verification(char world[][MAX_Y], struct Player *player, struct Player *AI, 
     AI->x++;
   else if (move_down == 0)
     AI->x--;
-
-  return EXIT_SUCCESS;
 }
 
 /**
@@ -313,7 +392,7 @@ int crash_detection(char world[][MAX_Y], struct Player *player, struct Player *A
   // Detection for x abxis.
   switch (ball->x)
   {
-  case 0:
+  case 1:
     return CRASH_UPPER; // Crash detection with the word's upper limit. The ball have to rebound to
                         // the button limit.
     break;
@@ -322,27 +401,31 @@ int crash_detection(char world[][MAX_Y], struct Player *player, struct Player *A
                   // the upper limit.
     return CRASH_BOTTOM;
     break;
+
+  default:
+    break;
   }
 
   // Detection for y abxis.
-  if (ball->y == 0)
-    return CRASH_LEFT_LIMIT; // Crash detection with the player's side. Goal for AI.
+  switch (ball->y)
+  {
+  case 0:
+    return CRASH_LEFT_LIMIT;
 
-  else if (ball->y == (MAX_Y - 1)) // Crash detection with the AI's side. Goal for player.
+  case MAX_Y - 1:
     return CRASH_RIGHT_LIMIT;
+  }
 
-  else if (ball->y == player->y + 1)
+  if (ball->y == (player->y + 1) && (ball->x >= player->x && ball->x <= (player->x + player->height))) // Crash with player's racker.
   {
     init_movement = false;
     return CRASH_PLAYER;
   }
-  else if ((AI->y + 1) == ball->y)
+  else if ((AI->y) == ball->y && (ball->x >= AI->x && ball->x <= (AI->x + AI->height))) // Crash with AI's racket.
   {
     init_movement = false;
     return CRASH_AI;
   }
-  else
-    return -1;
 
   return -2;
 }
@@ -357,7 +440,7 @@ void player_goto(struct Player *player)
     if ((key_pressed == 'W') || (key_pressed == 'w'))
     {
       // Player crash with upper litmit; stop.
-      if (player->x != 0)
+      if (player->x != 1)
         player->x--; // Move to up.
     }
     else if ((key_pressed == 'S') || (key_pressed == 's'))
@@ -381,10 +464,13 @@ void player_goto(struct Player *player)
  */
 int gameloop(struct Player *player, struct Player *AI, char world[][MAX_Y], struct Ball *ball)
 {
-
   for (;;)
   {
+#ifdef __linux__
     system("clear");
+#elif _WIN32
+    sytem("cls");
+#endif // __linux__
 
     player_goto(player);
 
@@ -396,32 +482,15 @@ int gameloop(struct Player *player, struct Player *AI, char world[][MAX_Y], stru
 
     delete (player, AI, world, ball);
 
-    usleep(45000);
+#ifdef __linux__
+    //sleep(1);
+    usleep(70000);
+#elif _WIN32
+    Sleep(1);
+#endif // __linux__
   }
-  return EXIT_SUCCESS;
-}
 
-/**
- * @brief The @MAX_X and @MAX_Y must be set with enough space to see the item
- * in the middle of the screen.
- * 
- * I need to see for solutions to the problem.
- * 
- * @param player The player's struct.
- * @param world The 2D array of the world.
- */
-void print_players(struct Player player[], char world[][MAX_Y])
-{
-  for (size_t k = 0; k < 2; k++)
-  {
-    for (size_t i = player[k].x; i < (player[k].height + player[k].x); i++)
-    {
-      for (size_t j = player[k].y; j < (player[k].width + player[k].y); j++)
-      {
-        *(*(world + i) + j) = '*';
-      }
-    }
-  }
+  return EXIT_SUCCESS;
 }
 
 /**
@@ -454,7 +523,13 @@ int life_cycle(char world[][MAX_Y], struct Player *player, struct Player *AI, st
 {
   fill_world(world);
 
-  AI->height = (int)(MAX_Y - (MAX_Y * 0.2));
+  // Show counter on screen.
+  world[0][MIDDLE(MAX_Y) - 1] = '0';
+  world[0][MIDDLE(MAX_Y)] = ':';
+  world[0][MIDDLE(MAX_Y) + 1] = '0';
+
+  // Set init values.
+  AI->height = (int)(MAX_Y - (MAX_Y * 0.6));
   player->height = 5;
   AI->width = player->width = 2;
   player->x = MIDDLE(MAX_Y) - MIDDLE(player->height);
@@ -463,9 +538,8 @@ int life_cycle(char world[][MAX_Y], struct Player *player, struct Player *AI, st
   AI->x = MIDDLE(MAX_Y) - MIDDLE(AI->height);
   AI->y = MAX_X - 3;
 
-  struct Player temp[] = {*player, *AI};
-
-  print_players(temp, world);
+  AI->goal_counter = 0;
+  player->goal_counter = 0;
 
   if (!gameloop(player, AI, world, ball))
   {
@@ -482,7 +556,7 @@ int main(int argc, char const *argv[])
 
   struct Player player;
   struct Player AI;
-  struct Ball ball = {MIDDLE(MAX_X), 
+  struct Ball ball = {MIDDLE(MAX_X),
                       MIDDLE(MAX_Y)};
 
   // Put the ball in the middle of the world.

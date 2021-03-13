@@ -10,10 +10,12 @@
 
 **As you are guessing I'm a newbie in this!**
 
-- [ ] I almost finish the base of this Ping-Pong game;
-- [x] **If you have some advice to me; don't hesitate in letting me know them!**
+## To do list
 
-***Ok, the principal error is concerning to the movement of the ball. When it's moving it left garbage of itself but I almost fix it.***
+***v0.2***
 
-- [ ] Delete the rest of garbage left from the movement.
-- [ ] I need to add the features of movement to the player and AI.
+- [x] Add portability cross-plataform WindowsOS and LinuxOS(to compile code).
+- [x] Show the counter.
+- [ ] Improve aspect of the game.
+- [ ] Fix bugs related to movement of ball.
+- [ ] Fix bugs related to counter.

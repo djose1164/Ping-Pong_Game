@@ -12,7 +12,7 @@
  * @author Jose S. Daniel (djose1164@gmail.com)
  * @brief Keep on mid: this proyect isn't finished yet and has many errors! I'll be thankful if you have 
  * any advice to me.
- * @version 0.1
+ * @version 0.2
  * @date 2021-03-06
  * 
  * @copyright Copyright (c) 2021

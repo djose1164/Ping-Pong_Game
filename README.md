@@ -1,6 +1,6 @@
 # Hello to everyone
 
-***I'm Jose S. Daniel, a student of mechatronics; learning C programing and Git yet jajaj xD.***
+***I'm Jose S. Daniel, a student of mechatronics. DEJA TU ESTRELLITA/LEAVE YOUR START***
 
 ## Thanks for looking at on this project
 
@@ -17,5 +17,5 @@
 - [x] Add portability cross-plataform WindowsOS and LinuxOS(to compile code).
 - [x] Show the counter.
 - [ ] Improve aspect of the game.
-- [ ] Fix bugs related to movement of ball.
-- [ ] Fix bugs related to counter.
+- [x] Fix bugs related to movement of ball.
+- [x] Fix bugs related to counter.
